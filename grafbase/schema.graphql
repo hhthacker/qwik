@@ -1,11 +1,12 @@
-type TodoList @model {
+type Plant @model {
   id: ID!
-  title: String!
-  todos: [Todo]
+  name: String! @unique
+  types: [Species]
 }
 
-type Todo @model {
+type Species @model {
   id: ID!
-  title: String!
-  complete: Boolean!
+  variation: String! @unique
+  rare: Boolean!
+  plant: Plant
 }
