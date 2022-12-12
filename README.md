@@ -4,11 +4,11 @@
 
 ## Please note
 
-This example uses the qwik web framework Fresh &mdash; [learn more](https://qwik.builder.io/docs/getting-started/)
+This example uses the qwik web framework &mdash; [learn more](https://qwik.builder.io/docs/getting-started/)
 
 ## Getting Started
 
-1. Make sure you have [Deno installed](https://deno.land) and ready to go first.
+1. Make sure you node.js v16 or higher and run `npm create qwik@latest`
 2. Run `npx degit grafbase/grafbase/examples/qwik` to clone this example
 3. Change directory into the new folder `cd qwik`
 4. Run `cp .env.example .env` to copy the example `.env.example` file to `.env`
@@ -17,35 +17,18 @@ This example uses the qwik web framework Fresh &mdash; [learn more](https://qwik
 7. Populate the backend with some `Message` entries using a GraphQL mutation:
 
 ```graphql
-mutation {
-  plantCreate(
-    input: {
-      name: "philodendron", 
-      types: [{ 
-        create: { 
-          variation: "prince of orange",
-          rare: false
-        }
-      }]
-    }
-  ) {
-    plant {
-      id
-      name
-      types(first: 1) {
-        edges {
-          node {
-            variation
-            rare
-          }
-        }
+  mutation {
+    plantCreate(input: { name: "pothos", description: "trailing marbled leaves" }) {
+      plant {
+        id
+        name
+        description
       }
     }
   }
-}
 ```
 
-6. In another terminal, run `qwik start` and visit [`http://localhost:8000`](http://localhost:8000)
+6. In another terminal, run `npm start` and visit [`http://localhost:5173/`](http://localhost:5173/)
 
 ## Learn More About Grafbase
 
@@ -53,11 +36,11 @@ To learn more about Grafbase, take a look at the following resources:
 
 - [Grafbase](https://grafbase.com/) - learn about Grafbase features and API.
 
-To learn more about Next.js, take a look at the following resources:
+To learn more about Builder.io, take a look at the following resources:
 
-- [Fresh Documentation](https://fresh.deno.dev/) - learn about Fresh.
-- [Learn Deno](https://deno.land/) - learn more about Deno.
+- [Qwik City Documentation](https://qwik.builder.io/qwikcity/overview/) - learn about Qwik City.
+- [Learn Qwik](https://qwik.builder.io/docs/overview/) - learn more about Qwik.
 
 ### Run on Codesandbox
 
-[![Develop with Codesandbox](https://codesandbox.io/static/img/play-codesandbox.svg)](https://githubbox.com/grafbase/grafbase/tree/main/examples/fresh)
+- todo
