@@ -1,9 +1,19 @@
 import { component$, Resource, useResource$, useSignal } from '@builder.io/qwik';
-import type { DocumentHead } from '@builder.io/qwik-city';
 import { grafbaseClient } from '~/utils/grafbase';
 
-export const GetAllPlantsQuery = { query: 
-  `query GetAllPlants($first: Int!) {
+interface Plants {
+  plantCollection: {
+    edges: Plant[]
+  }
+}
+
+interface Plant {
+  id: string
+  name: string
+  description: string
+}
+export const GetAllPlantsQuery = `
+  query GetAllPlants($first: Int!) {
     plantCollection(first: $first) {
       edges {
         node {
@@ -13,14 +23,11 @@ export const GetAllPlantsQuery = { query:
         }
       }
     }
-  }`,
-  variables: {
-    first: 100
   }
-}
+`
 
-export const AddNewPlantMutation = (name: string, description: string) => ({ query: 
-  `mutation AddNewPlant($name: String!, $description: String!) {
+export const AddNewPlantMutation = `
+  mutation AddNewPlant($name: String!, $description: String!) {
     plantCreate(input: { name: $name, description: $description }) {
       plant {
         id
@@ -28,28 +35,23 @@ export const AddNewPlantMutation = (name: string, description: string) => ({ que
         description
       }
     }
-  }`,
-  variables: {
-    name,
-    description
   }
-})
+`
 
 export default component$(() => {
   const newPlant = useSignal('');
   const newPlantDescription = useSignal('');
 
   const plantResource = useResource$(async () => {
-		return await grafbaseClient(GetAllPlantsQuery);
+		return await grafbaseClient({ query: GetAllPlantsQuery, variables: {first: 100}});
 	});
 
-  console.log('data', plantResource)
   return (
     <div>
       <h1>Plants</h1>
       <Resource
         value={plantResource}
-        onResolved={(plant) => plant?.plantCollection?.edges?.map(({ node }) => (
+        onResolved={(plant: Plants) => plant?.plantCollection?.edges?.map(({ node }) => (
           <>
           <div>{node?.name}: {node?.description}</div>
           </>
@@ -65,7 +67,7 @@ export default component$(() => {
       <br />
       <button
         onClick$={async () => {
-          await grafbaseClient(AddNewPlantMutation(newPlant.value, newPlantDescription.value))    
+          await grafbaseClient({ query: AddNewPlantMutation, variables: { name: newPlant.value, description: newPlantDescription.value }})    
         }}
       > Add Plant
       </button>

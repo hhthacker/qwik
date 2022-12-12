@@ -11,6 +11,5 @@ export const grafbaseClient = async <T>(body: {
         body: JSON.stringify(body)
       })
 	const json: any = await response.json();
-    console.log('client', json.data)
 	return json.data;
 };
