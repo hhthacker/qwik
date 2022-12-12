@@ -1,12 +1,5 @@
 type Plant @model {
   id: ID!
   name: String! @unique
-  types: [Species]
-}
-
-type Species @model {
-  id: ID!
-  variation: String! @unique
-  rare: Boolean!
-  plant: Plant
+  description: String!
 }

@@ -1,135 +1,93 @@
-import { component$ } from '@builder.io/qwik';
+import { component$, useResource$, useStore } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
-import { Link } from '@builder.io/qwik-city';
+import { grafbaseClient } from '~/utils/grafbase';
+
+type Plant = {
+  id?: string
+  name: string
+  description: string
+}
+
+export const GetAllPlantsQuery = { query: 
+  `query GetAllPlants($first: Int!) {
+    plantCollection(first: $first) {
+      edges {
+        node {
+          id
+          name
+          description
+        }
+      }
+    }
+  }`,
+  variables: {
+    first: 100
+  }
+}
+
+export const AddNewPlantMutation = { query: 
+  `mutation AddNewPlant($name: String!, $description: String!) {
+    plantCreate(input: { name: $name, description: $description }) {
+      plant {
+        id
+        name
+      }
+    }
+  }`,
+  variables: {
+    first: 100
+  }
+}
 
 export default component$(() => {
+
+  const state = useStore<Plant>({name: 'plant', description: 'green'})
+
+  const plantResource = useResource$(async () => {
+		const { plants } = await grafbaseClient(GetAllPlantsQuery);
+  console.log('plants', plants)
+
+		return plants;
+	});
+
+  console.log('data', plantResource)
   return (
     <div>
-      <h1>
-        Welcome to Qwik <span class="lightning">⚡️</span>
-      </h1>
+      <h1>Plants</h1>
+      <form>
+        <fieldset>
+          <legend>New plant</legend>
+          <input id="name" name="name" placeholder="Name" onChange$={ event =>
+          state.name = event.target.value } />
+          <br />
+          <textarea
+            id="description"
+            name="description"
+            placeholder="Describe the plant"
+            onChange$={ event =>
+              state.description = event.target.value }
+            rows={5}
+          ></textarea>
+          <br />
+          <button
+            onClick$={async () => {
+              const { plant } = await grafbaseClient(AddNewPlantMutation)    
+            }}
+          > Yooo
+					</button>
 
-      <ul>
-        <li>
-          Check out the <code>src/routes</code> directory to get started.
-        </li>
-        <li>
-          Add integrations with <code>npm run qwik add</code>.
-        </li>
-        <li>
-          More info about development in <code>README.md</code>
-        </li>
-      </ul>
+        </fieldset>
+      </form>
 
-      <h2>Commands</h2>
-
-      <table class="commands">
-        <tr>
-          <td>
-            <code>npm run dev</code>
-          </td>
-          <td>Start the dev server and watch for changes.</td>
-        </tr>
-        <tr>
-          <td>
-            <code>npm run preview</code>
-          </td>
-          <td>Production build and start preview server.</td>
-        </tr>
-        <tr>
-          <td>
-            <code>npm run build</code>
-          </td>
-          <td>Production build.</td>
-        </tr>
-        <tr>
-          <td>
-            <code>npm run qwik add</code>
-          </td>
-          <td>Select an integration to add.</td>
-        </tr>
-      </table>
-
-      <h2>Add Integrations</h2>
-
-      <table class="commands">
-        <tr>
-          <td>
-            <code>npm run qwik add cloudflare-pages</code>
-          </td>
-          <td>
-            <a href="https://developers.cloudflare.com/pages" target="_blank">
-              Cloudflare Pages Server
-            </a>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <code>npm run qwik add express</code>
-          </td>
-          <td>
-            <a href="https://expressjs.com/" target="_blank">
-              Nodejs Express Server
-            </a>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <code>npm run qwik add netlify-edge</code>
-          </td>
-          <td>
-            <a href="https://docs.netlify.com/" target="_blank">
-              Netlify Edge Functions
-            </a>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <code>npm run qwik add static</code>
-          </td>
-          <td>
-            <a
-              href="https://qwik.builder.io/qwikcity/static-site-generation/overview/"
-              target="_blank"
-            >
-              Static Site Generation (SSG)
-            </a>
-          </td>
-        </tr>
-      </table>
-
-      <h2>Community</h2>
-
-      <ul>
-        <li>
-          <span>Questions or just want to say hi? </span>
-          <a href="https://qwik.builder.io/chat" target="_blank">
-            Chat on discord!
-          </a>
-        </li>
-        <li>
-          <span>Follow </span>
-          <a href="https://twitter.com/QwikDev" target="_blank">
-            @QwikDev
-          </a>
-          <span> on Twitter</span>
-        </li>
-        <li>
-          <span>Open issues and contribute on </span>
-          <a href="https://github.com/BuilderIO/qwik" target="_blank">
-            GitHub
-          </a>
-        </li>
-        <li>
-          <span>Watch </span>
-          <a href="https://qwik.builder.io/media/" target="_blank">
-            Presentations, Podcasts, Videos, etc.
-          </a>
-        </li>
-      </ul>
-      <Link class="mindblow" href="/flower/">
-        Blow my mind 🤯
-      </Link>
+{/* 
+      {plantResource?.plantCollection?.edges?.map(({ node }) => (
+        <>
+        <div>{node.id}</div>
+        <div>{node.name}</div>
+        <div>{node.description}</div>
+        </>
+      ))} */}
+      
     </div>
   );
 });
