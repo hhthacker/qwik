@@ -1,4 +1,4 @@
-import { component$, Resource, useResource$, useSignal } from '@builder.io/qwik';
+import { component$, useServerMount$, useSignal } from '@builder.io/qwik';
 import { grafbaseClient } from '~/utils/grafbase';
 
 interface Plants {
@@ -12,6 +12,7 @@ interface Plant {
   name: string
   description: string
 }
+
 export const GetAllPlantsQuery = `
   query GetAllPlants($first: Int!) {
     plantCollection(first: $first) {
@@ -41,23 +42,21 @@ export const AddNewPlantMutation = `
 export default component$(() => {
   const newPlant = useSignal('');
   const newPlantDescription = useSignal('');
+  const allPlants = useSignal<Plants>();
 
-  const plantResource = useResource$(async () => {
-		return await grafbaseClient({ query: GetAllPlantsQuery, variables: {first: 100}});
-	});
+  useServerMount$(async () => {
+    const plants: Plants = await grafbaseClient({ query: GetAllPlantsQuery, variables: {first: 100}});
+    allPlants.value = plants;
+  })
 
   return (
     <div>
       <h1>Plants</h1>
-      <Resource
-        value={plantResource}
-        onResolved={(plant: Plants) => plant?.plantCollection?.edges?.map(({ node }) => (
-          <>
-          <div>{node?.name}: {node?.description}</div>
-          </>
-        ))
-        }
-      ></Resource>
+      {allPlants.value?.plantCollection.edges.map(({node}) => (
+        <>
+        <div>{node?.name} : {node?.description}</div>
+        </>
+      ))}
       <h2>New plant</h2>
       <input id="name" name="name" placeholder="Name" value={newPlant.value} onInput$={ event =>
       newPlant.value = (event.target as HTMLInputElement).value } />
@@ -67,7 +66,8 @@ export default component$(() => {
       <br />
       <button
         onClick$={async () => {
-          await grafbaseClient({ query: AddNewPlantMutation, variables: { name: newPlant.value, description: newPlantDescription.value }})    
+          await grafbaseClient({ query: AddNewPlantMutation, variables: { name: newPlant.value, description: newPlantDescription.value }})
+          allPlants.value = await grafbaseClient({ query: GetAllPlantsQuery, variables: {first: 100}});
         }}
       > Add Plant
       </button>
