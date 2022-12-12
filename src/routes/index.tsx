@@ -1,12 +1,6 @@
-import { component$, useResource$, useStore } from '@builder.io/qwik';
+import { component$, Resource, useResource$, useSignal } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
 import { grafbaseClient } from '~/utils/grafbase';
-
-type Plant = {
-  id?: string
-  name: string
-  description: string
-}
 
 export const GetAllPlantsQuery = { query: 
   `query GetAllPlants($first: Int!) {
@@ -25,79 +19,56 @@ export const GetAllPlantsQuery = { query:
   }
 }
 
-export const AddNewPlantMutation = { query: 
+export const AddNewPlantMutation = (name: string, description: string) => ({ query: 
   `mutation AddNewPlant($name: String!, $description: String!) {
     plantCreate(input: { name: $name, description: $description }) {
       plant {
         id
         name
+        description
       }
     }
   }`,
   variables: {
-    first: 100
+    name,
+    description
   }
-}
+})
 
 export default component$(() => {
-
-  const state = useStore<Plant>({name: 'plant', description: 'green'})
+  const newPlant = useSignal('');
+  const newPlantDescription = useSignal('');
 
   const plantResource = useResource$(async () => {
-		const { plants } = await grafbaseClient(GetAllPlantsQuery);
-  console.log('plants', plants)
-
-		return plants;
+		return await grafbaseClient(GetAllPlantsQuery);
 	});
 
   console.log('data', plantResource)
   return (
     <div>
       <h1>Plants</h1>
-      <form>
-        <fieldset>
-          <legend>New plant</legend>
-          <input id="name" name="name" placeholder="Name" onChange$={ event =>
-          state.name = event.target.value } />
-          <br />
-          <textarea
-            id="description"
-            name="description"
-            placeholder="Describe the plant"
-            onChange$={ event =>
-              state.description = event.target.value }
-            rows={5}
-          ></textarea>
-          <br />
-          <button
-            onClick$={async () => {
-              const { plant } = await grafbaseClient(AddNewPlantMutation)    
-            }}
-          > Yooo
-					</button>
-
-        </fieldset>
-      </form>
-
-{/* 
-      {plantResource?.plantCollection?.edges?.map(({ node }) => (
-        <>
-        <div>{node.id}</div>
-        <div>{node.name}</div>
-        <div>{node.description}</div>
-        </>
-      ))} */}
-      
+      <Resource
+        value={plantResource}
+        onResolved={(plant) => plant?.plantCollection?.edges?.map(({ node }) => (
+          <>
+          <div>{node?.name}: {node?.description}</div>
+          </>
+        ))
+        }
+      ></Resource>
+      <h2>New plant</h2>
+      <input id="name" name="name" placeholder="Name" value={newPlant.value} onInput$={ event =>
+      newPlant.value = (event.target as HTMLInputElement).value } />
+      <br />
+      <input id="description" name="description" placeholder="Describe the plant" value={newPlantDescription.value} onInput$={ event =>
+      newPlantDescription.value = (event.target as HTMLInputElement).value } />
+      <br />
+      <button
+        onClick$={async () => {
+          await grafbaseClient(AddNewPlantMutation(newPlant.value, newPlantDescription.value))    
+        }}
+      > Add Plant
+      </button>
     </div>
   );
 });
-
-export const head: DocumentHead = {
-  title: 'Welcome to Qwik',
-  meta: [
-    {
-      name: 'description',
-      content: 'Qwik site description',
-    },
-  ],
-};
